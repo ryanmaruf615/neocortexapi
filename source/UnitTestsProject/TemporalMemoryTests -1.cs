@@ -62,6 +62,45 @@ namespace UnitTestsProject
             return htmConfig;
         }
 
+        [TestMethod]
+        [TestCategory("Prod")]
+        [DataRow(0)]
+        [DataRow(1)]
+        public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
+        {
+            TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters1();
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            int[] activeColumns = { 1 };
+
+            // Cell4 belongs to column with index 1.
+            Cell cell5 = cn.GetCell(5);
+
+            // ISet<Cell> expectedActiveCells = Stream.of(cell4).collect(Collectors.toSet());
+            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell5 });
+
+            // We add distal dentrite at column1.cell4
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cell5);
+
+            //
+            // We add here synapses between column0.cells[0-3] and segment.
+            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.15);
+
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedActiveCells));
+
+            ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
+            Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
+        }
 
         private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
         {
