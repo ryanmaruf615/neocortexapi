@@ -13,6 +13,62 @@ namespace UnitTestsProject
     [TestClass]
     public class TemporalPoolerTest2
     {
+        private static bool areDisjoined<T>(ICollection<T> arr1, ICollection<T> arr2)
+        {
+            foreach (var item in arr1)
+            {
+                if (arr2.Contains(item))
+                    return false;
+            }
 
+            return true;
+        }
+        private Parameters getDefaultParameters2()
+        {
+            Parameters retVal = Parameters.getTemporalDefaultParameters();
+            retVal.Set(KEY.COLUMN_DIMENSIONS, new int[] { 32 });
+            retVal.Set(KEY.CELLS_PER_COLUMN, 6);
+            retVal.Set(KEY.ACTIVATION_THRESHOLD, 3);
+            retVal.Set(KEY.INITIAL_PERMANENCE, 0.20);
+            retVal.Set(KEY.CONNECTED_PERMANENCE, 0.20);
+            retVal.Set(KEY.MIN_THRESHOLD, 2);
+            retVal.Set(KEY.MAX_NEW_SYNAPSE_COUNT, 2);
+            retVal.Set(KEY.PERMANENCE_INCREMENT, 0.20);
+            retVal.Set(KEY.PERMANENCE_DECREMENT, 0.20);
+            retVal.Set(KEY.PREDICTED_SEGMENT_DECREMENT, 0.0);
+            retVal.Set(KEY.RANDOM, new ThreadSafeRandom(42));
+            retVal.Set(KEY.SEED, 42);
+
+            return retVal;
+        }
+
+        private HtmConfig GetDefaultTMParameters2()
+        {
+            HtmConfig htmConfig = new HtmConfig(new int[] { 32 }, new int[] { 32 })
+            {
+                CellsPerColumn = 6,
+                ActivationThreshold = 3,
+                InitialPermanence = 0.20,
+                ConnectedPermanence = 0.20,
+                MinThreshold = 2,
+                MaxNewSynapseCount = 2,
+                PermanenceIncrement = 0.20,
+                PermanenceDecrement = 0.20,
+                PredictedSegmentDecrement = 0,
+                Random = new ThreadSafeRandom(42),
+                RandomGenSeed = 42
+            };
+
+            return htmConfig;
+        }
+
+
+        private Parameters GetDefaultParameters2(Parameters p, string key, Object value)
+        {
+            Parameters retVal = p == null ? getDefaultParameters2() : p;
+            retVal.Set(key, value);
+
+            return retVal;
+        }
     }
 }
