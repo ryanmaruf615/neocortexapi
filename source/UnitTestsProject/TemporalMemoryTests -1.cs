@@ -135,6 +135,38 @@ namespace UnitTestsProject
             Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
         }
 
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNoneActiveColumns()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters1();
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            Cell cell5 = cn.GetCell(5);
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cell5);
+            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.15);
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            Assert.IsFalse(cc.ActiveCells.Count == 0);
+            Assert.IsFalse(cc.WinnerCells.Count == 0);
+            Assert.IsFalse(cc.PredictiveCells.Count == 0);
+
+            int[] zeroColumns = new int[0];
+            ComputeCycle cc2 = tm.Compute(zeroColumns, true) as ComputeCycle;
+            Assert.IsTrue(cc2.ActiveCells.Count == 0);
+            Assert.IsTrue(cc2.WinnerCells.Count == 0);
+            Assert.IsTrue(cc2.PredictiveCells.Count == 0);
+        }
+
         private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
         {
             Parameters retVal = p == null ? getDefaultParameters1() : p;
