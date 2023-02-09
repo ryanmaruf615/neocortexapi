@@ -153,7 +153,7 @@ namespace UnitTestsProject
             cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.15);
             cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.15);
             cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.15);
-            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.15);
+            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.15);
 
             ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             Assert.IsFalse(cc.ActiveCells.Count == 0);
@@ -165,6 +165,34 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.ActiveCells.Count == 0);
             Assert.IsTrue(cc2.WinnerCells.Count == 0);
             Assert.IsTrue(cc2.PredictiveCells.Count == 0);
+        }
+        
+        [TestMethod]
+public void TestActivateDendrites()
+{
+            // Arrange
+            TemporalMemory tm = new TemporalMemory();
+            int[] activeColumns = new int[] { 2, 4, 6, 8 };
+    bool learn = true;
+    int[] externalPredictiveInputsActive = new int[] { 3, 5, 7 };
+    int[] externalPredictiveInputsWinners = new int[] { 2, 5 };
+    Connections conn = new Connections();
+    // Populate conn with cells, columns, dendrite segments, etc.
+
+    // Act
+    ComputeCycle cycle = ActivateDendrites(conn, activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
+
+    // Assert
+    Assert.IsNotNull(cycle);
+    Assert.IsNotNull(cycle.ActivColumnIndicies);
+    CollectionAssert.AreEqual(activeColumns, cycle.ActivColumnIndicies);
+    // Assert other properties of cycle as needed
+    // Assert that the correct cells, columns, dendrite segments, etc. were activated and modified as expected
+}
+
+        private ComputeCycle ActivateDendrites(Connections conn, int[] activeColumns, bool learn, int[] externalPredictiveInputsActive, int[] externalPredictiveInputsWinners)
+        {
+            throw new NotImplementedException();
         }
 
         private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
