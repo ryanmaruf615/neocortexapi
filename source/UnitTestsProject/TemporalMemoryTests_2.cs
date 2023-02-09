@@ -88,7 +88,7 @@ namespace UnitTestsProject
             DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
 
             //
-            // We add here synapses between column0.cells[0-3] and segment.
+            // We add here synapses between column0.cells[0-5] and segment.
             cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
@@ -102,6 +102,61 @@ namespace UnitTestsProject
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
         }
+
+
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void testNumberOfColumns()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = Parameters.getAllDefaultParameters();
+            p.Set(KEY.COLUMN_DIMENSIONS, new int[] { 62, 62 });
+            p.Set(KEY.CELLS_PER_COLUMN, 30);
+            p.apply(cn);
+            tm.Init(cn);
+
+            Assert.AreEqual(62 * 62, cn.HtmConfig.NumColumns);
+        }
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestWithTwoActiveColumns()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters2();
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 4, 5 }; 
+            Cell cell6 = cn.GetCell(7); 
+            Cell cell7 = cn.GetCell(8);
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
+           
+            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
+
+
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            Assert.IsFalse(cc.ActiveCells.Count == 0);
+            Assert.IsFalse(cc.WinnerCells.Count == 0);
+            Assert.IsTrue(cc.PredictiveCells.Count == 0);
+
+            int[] zeroColumns = new int[0];
+            ComputeCycle cc2 = tm.Compute(zeroColumns, true) as ComputeCycle; 
+            Assert.IsTrue(cc2.ActiveCells.Count == 0); 
+            Assert.IsTrue(cc2.WinnerCells.Count == 0);  
+            Assert.IsTrue(cc2.PredictiveCells.Count == 0); 
+        }
+
 
 
         private Parameters GetDefaultParameters2(Parameters p, string key, Object value)
