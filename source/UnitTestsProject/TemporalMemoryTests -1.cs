@@ -166,34 +166,62 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.WinnerCells.Count == 0);
             Assert.IsTrue(cc2.PredictiveCells.Count == 0);
         }
-        
+
         [TestMethod]
-public void TestActivateDendrites()
-{
-            // Arrange
-            TemporalMemory tm = new TemporalMemory();
-            int[] activeColumns = new int[] { 2, 4, 6, 8 };
-    bool learn = true;
-    int[] externalPredictiveInputsActive = new int[] { 3, 5, 7 };
-    int[] externalPredictiveInputsWinners = new int[] { 2, 5 };
-    Connections conn = new Connections();
-    // Populate conn with cells, columns, dendrite segments, etc.
-
-    // Act
-    ComputeCycle cycle = ActivateDendrites(conn, activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
-
-    // Assert
-    Assert.IsNotNull(cycle);
-    Assert.IsNotNull(cycle.ActivColumnIndicies);
-    CollectionAssert.AreEqual(activeColumns, cycle.ActivColumnIndicies);
-    // Assert other properties of cycle as needed
-    // Assert that the correct cells, columns, dendrite segments, etc. were activated and modified as expected
-}
-
-        private ComputeCycle ActivateDendrites(Connections conn, int[] activeColumns, bool learn, int[] externalPredictiveInputsActive, int[] externalPredictiveInputsWinners)
+        [TestCategory("Prod")]
+        public void TestPredictedActiveCellsAreCorrect()
         {
-            throw new NotImplementedException();
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters1();
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            int[] activeColumns = { 1 };
+            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) };
+            List<Cell> expectedWinnerCells = new List<Cell>(cn.GetCells(new int[] { 6, 8 }));
+
+            DistalDendrite activeSegment1 = cn.CreateDistalSegment(expectedWinnerCells[0]);
+            cn.CreateSynapse(activeSegment1, previousActiveCells[0], 0.15);
+            cn.CreateSynapse(activeSegment1, previousActiveCells[1], 0.15);
+            cn.CreateSynapse(activeSegment1, previousActiveCells[2], 0.15);
+            cn.CreateSynapse(activeSegment1, previousActiveCells[3], 0.15);
+
+            DistalDendrite activeSegment2 = cn.CreateDistalSegment(expectedWinnerCells[1]);
+            
+            cn.CreateSynapse(activeSegment2, previousActiveCells[1], 0.15);
+            cn.CreateSynapse(activeSegment2, previousActiveCells[2], 0.15);
+            cn.CreateSynapse(activeSegment2, previousActiveCells[3], 0.15);
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, false) as ComputeCycle; // learn=false
+            cc = tm.Compute(activeColumns, false) as ComputeCycle; // learn=false
+
+            Assert.IsTrue(cc.WinnerCells.SequenceEqual(new LinkedHashSet<Cell>(expectedWinnerCells)));
         }
+
+        [TestMethod]
+        public void TestActivateDendrites()
+        {
+            // Arrange
+            int[] activeColumns = new int[] { 2, 4, 6, 8 };
+            bool learn = true;
+            int[] externalPredictiveInputsActive = new int[] { 3, 5, 7 };
+            int[] externalPredictiveInputsWinners = new int[] { 2, 5 };
+            Connections conn = new Connections();
+            // Populate conn with cells, columns, dendrite segments, etc.
+
+            // Act
+            ComputeCycle cycle = ActivateDendrites(conn, activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
+
+            // Assert
+            Assert.IsNotNull(cycle);
+            Assert.IsNotNull(cycle.ActivColumnIndicies);
+            CollectionAssert.AreEqual(activeColumns, cycle.ActivColumnIndicies);
+            // Assert other properties of cycle as needed
+            // Assert that the correct cells, columns, dendrite segments, etc. were activated and modified as expected
+        }
+
 
         private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
         {
