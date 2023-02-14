@@ -101,8 +101,29 @@ namespace UnitTestsProject
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
         }
-        
-        
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestAdaptSegmentToCentre()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = Parameters.getAllDefaultParameters();
+            p.apply(cn);
+            tm.Init(cn);
+
+            DistalDendrite dd = cn.CreateDistalSegment(cn.GetCell(0));
+            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(5), 0.5); // central 
+
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 5 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
+            Assert.AreEqual(0.6, s1.Permanence, 0.1);
+
+            // Now permanence should be at mean
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 5 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
+            Assert.AreEqual(0.7, s1.Permanence, 0.1);
+        }
+
+
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
