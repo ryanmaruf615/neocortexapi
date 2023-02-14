@@ -157,7 +157,22 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.PredictiveCells.Count == 0); 
         }
 
+        [TestMethod]
+        public void TestBurstUnpredictedColumnsforSixCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters2();
+            p.apply(cn);
+            tm.Init(cn);
 
+            int[] activeColumns = { 0 };
+            var burstingCells = cn.GetCells(new int[] { 0, 1, 2, 3, 4, 5 });
+
+            ComputeCycle cc = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
+        }
 
         private Parameters GetDefaultParameters2(Parameters p, string key, Object value)
         {
@@ -167,4 +182,5 @@ namespace UnitTestsProject
             return retVal;
         }
     }
+
 }
