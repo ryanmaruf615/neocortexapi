@@ -204,13 +204,12 @@ namespace UnitTestsProject
         public void TestActivateDendrites()
         {
             // Arrange
-            int[] activeColumns = new int[] { 2, 4, 6, 8 };
+            int[] activeColumns = new int[] {  6, 8 };
             bool learn = true;
-            int[] externalPredictiveInputsActive = new int[] { 3, 5, 7 };
-            int[] externalPredictiveInputsWinners = new int[] { 2, 5 };
+            int[] externalPredictiveInputsActive = new int[] { 3, 5, 8 };
+            int[] externalPredictiveInputsWinners = new int[] { 2, 6 };
             Connections conn = new Connections();
-            // Populate conn with cells, columns, dendrite segments, etc.
-
+       
             // Act
             ComputeCycle cycle = ActivateDendrites(conn, activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
 
@@ -218,10 +217,13 @@ namespace UnitTestsProject
             Assert.IsNotNull(cycle);
             Assert.IsNotNull(cycle.ActivColumnIndicies);
             CollectionAssert.AreEqual(activeColumns, cycle.ActivColumnIndicies);
-            // Assert other properties of cycle as needed
-            // Assert that the correct cells, columns, dendrite segments, etc. were activated and modified as expected
+            
         }
 
+        private ComputeCycle ActivateDendrites(Connections conn, int[] activeColumns, bool learn, int[] externalPredictiveInputsActive, int[] externalPredictiveInputsWinners)
+        {
+            throw new NotImplementedException();
+        }
 
         private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
         {
