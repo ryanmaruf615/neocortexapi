@@ -63,6 +63,15 @@ namespace UnitTestsProject
         }
 
 
+        private Parameters GetDefaultParameters2(Parameters p, string key, Object value)
+        {
+            Parameters retVal = p == null ? getDefaultParameters2() : p;
+            retVal.Set(key, value);
+
+            return retVal;
+        }
+
+
         [TestMethod]
         [TestCategory("Prod")]
         [DataRow(0)]
@@ -174,13 +183,25 @@ namespace UnitTestsProject
             Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
         }
 
-        private Parameters GetDefaultParameters2(Parameters p, string key, Object value)
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNoNewSegmentIfNotEnoughWinnerCells()
         {
-            Parameters retVal = p == null ? getDefaultParameters2() : p;
-            retVal.Set(key, value);
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters2(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            p.apply(cn);
+            tm.Init(cn);
 
-            return retVal;
+            int[] zeroColumns = { };
+            int[] activeColumns = { 0 };
+
+            tm.Compute(zeroColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(), 0);
         }
+
     }
 
 }
