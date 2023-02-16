@@ -27,7 +27,7 @@ namespace UnitTestsProject
         {
             Parameters retVal = Parameters.getTemporalDefaultParameters();
             retVal.Set(KEY.COLUMN_DIMENSIONS, new int[] { 32 });
-            retVal.Set(KEY.CELLS_PER_COLUMN, 5);
+            retVal.Set(KEY.CELLS_PER_COLUMN, 6);
             retVal.Set(KEY.ACTIVATION_THRESHOLD, 2);
             retVal.Set(KEY.INITIAL_PERMANENCE, 0.20);
             retVal.Set(KEY.CONNECTED_PERMANENCE, 0.20);
@@ -46,7 +46,7 @@ namespace UnitTestsProject
         {
             HtmConfig htmConfig = new HtmConfig(new int[] { 32 }, new int[] { 32 })
             {
-                CellsPerColumn = 5,
+                CellsPerColumn = 6,
                 ActivationThreshold = 2,
                 InitialPermanence = 0.20,
                 ConnectedPermanence = 0.20,
@@ -78,13 +78,13 @@ namespace UnitTestsProject
             int[] activeColumns = { 1 };
 
             // Cell4 belongs to column with index 1.
-            Cell cell5 = cn.GetCell(5);
+            Cell cell6 = cn.GetCell(6);
 
             // ISet<Cell> expectedActiveCells = Stream.of(cell4).collect(Collectors.toSet());
-            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell5 });
+            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell6 });
 
             // We add distal dentrite at column1.cell4
-            DistalDendrite activeSegment = cn.CreateDistalSegment(cell5);
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
 
             //
             // We add here synapses between column0.cells[0-3] and segment.
@@ -93,7 +93,7 @@ namespace UnitTestsProject
             cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
-
+            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
 
             ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedActiveCells));
@@ -113,17 +113,47 @@ namespace UnitTestsProject
             tm.Init(cn);
 
             DistalDendrite dd = cn.CreateDistalSegment(cn.GetCell(0));
-            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(5), 0.5); // central 
+            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(6), 0.5); // central 
 
-            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 5 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
             Assert.AreEqual(0.6, s1.Permanence, 0.1);
 
             // Now permanence should be at mean
-            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 5 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
             Assert.AreEqual(0.7, s1.Permanence, 0.1);
         }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNoneActiveColumns()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters3();
+            p.apply(cn);
+            tm.Init(cn);
 
+            int[] previousActiveColumns = { 0 };
+            Cell cell6 = cn.GetCell(6);
 
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
+            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            Assert.IsFalse(cc.ActiveCells.Count == 0);
+            Assert.IsFalse(cc.WinnerCells.Count == 0);
+            Assert.IsFalse(cc.PredictiveCells.Count == 0);
+
+            int[] zeroColumns = new int[0];
+            ComputeCycle cc2 = tm.Compute(zeroColumns, true) as ComputeCycle;
+            Assert.IsTrue(cc2.ActiveCells.Count == 0);
+            Assert.IsTrue(cc2.WinnerCells.Count == 0);
+            Assert.IsTrue(cc2.PredictiveCells.Count == 0);
+        }
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
