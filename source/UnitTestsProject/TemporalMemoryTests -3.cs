@@ -154,6 +154,24 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.WinnerCells.Count == 0);
             Assert.IsTrue(cc2.PredictiveCells.Count == 0);
         }
+        [TestMethod]
+        public void TestArrayNotContainingCells()
+        {
+
+            HtmConfig htmConfig = GetDefaultTMParameters3();
+            Connections cn = new Connections(htmConfig);
+
+            TemporalMemory tm = new TemporalMemory();
+
+            tm.Init(cn);
+
+            int[] activeColumns = { 4, 5 };
+            Cell[] burstingCells = cn.GetCells(new int[] { 0, 1, 2, 3, 4, 5 });
+
+            ComputeCycle cc = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            Assert.IsFalse(cc.ActiveCells.SequenceEqual(burstingCells));
+        }
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
