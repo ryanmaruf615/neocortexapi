@@ -7,6 +7,7 @@ using NeoCortexApi.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace UnitTestsProject
 {
@@ -201,28 +202,62 @@ namespace UnitTestsProject
         }
 
         [TestMethod]
+        [TestCategory("Prod")]
+        public void TestReinforcedSelectedMatchingSegmentInBurstingColumn1()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.15);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            int[] activeColumns = { 1 };
+            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3) , cn.GetCell(4) };
+            Cell[] burstingCells = { cn.GetCell(4), cn.GetCell(6) , cn.GetCell(8) };
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(burstingCells[0]);
+            Synapse as1 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.15);
+            Synapse as2 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.15);
+            Synapse as3 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.15);
+            Synapse as4 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.15);
+            Synapse as5 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.15);
+            Synapse is1 = cn.CreateSynapse(activeSegment, cn.GetCell(81), 0.15);
+
+            DistalDendrite otherMatchingSegment = cn.CreateDistalSegment(burstingCells[1]);
+            cn.CreateSynapse(otherMatchingSegment, previousActiveCells[0], 0.15);
+            cn.CreateSynapse(otherMatchingSegment, previousActiveCells[1], 0.15);
+            cn.CreateSynapse(otherMatchingSegment, previousActiveCells[2], 0.15);
+            cn.CreateSynapse(otherMatchingSegment, cn.GetCell(81), 0.15);
+
+            tm.Compute(previousActiveColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0.15, as1.Permanence, 0.01);
+            Assert.AreEqual(0.15, as2.Permanence, 0.01);
+            Assert.AreEqual(0.15, as3.Permanence, 0.01);
+            Assert.AreEqual(0.15, as4.Permanence, 0.01);
+            Assert.AreEqual(0.15, as5.Permanence, 0.01);
+            Assert.AreEqual(0.15, is1.Permanence, 0.001);
+        }
+
+        [TestMethod]
         public void TestActivateDendrites()
         {
             // Arrange
-            int[] activeColumns = new int[] {  6, 8 };
+            var conn = new Connections();
+            var cycle = new ComputeCycle();
             bool learn = true;
-            int[] externalPredictiveInputsActive = new int[] { 3, 5, 8 };
-            int[] externalPredictiveInputsWinners = new int[] { 2, 6 };
-            Connections conn = new Connections();
-       
+            int[] externalPredictiveInputsActive = new int[] { 1, 2, 3 };
+            int[] externalPredictiveInputsWinners = new int[] { 4, 5, 6 };
+            var myClass = (TemporalMemory)Activator.CreateInstance(typeof(TemporalMemory), nonPublic: true);
+
             // Act
-            ComputeCycle cycle = ActivateDendrites(conn, activeColumns, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners);
+            var method = typeof(TemporalMemory).GetMethod("ActivateDendrites", BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(myClass, new object[] { conn, cycle, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners });
 
             // Assert
-            Assert.IsNotNull(cycle);
-            Assert.IsNotNull(cycle.ActivColumnIndicies);
-            CollectionAssert.AreEqual(activeColumns, cycle.ActivColumnIndicies);
-            
-        }
-
-        private ComputeCycle ActivateDendrites(Connections conn, int[] activeColumns, bool learn, int[] externalPredictiveInputsActive, int[] externalPredictiveInputsWinners)
-        {
-            throw new NotImplementedException();
+            // Add your assertions here
         }
 
         private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
