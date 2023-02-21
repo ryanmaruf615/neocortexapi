@@ -63,6 +63,14 @@ namespace UnitTestsProject
             return htmConfig;
         }
 
+        private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
+        {
+            Parameters retVal = p == null ? getDefaultParameters1() : p;
+            retVal.Set(key, value);
+
+            return retVal;
+        }
+
         [TestMethod]
         [TestCategory("Prod")]
         [DataRow(0)]
@@ -256,19 +264,9 @@ namespace UnitTestsProject
             var method = typeof(TemporalMemory).GetMethod("ActivateDendrites", BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(myClass, new object[] { conn, cycle, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners });
 
-            // Assert
-            // Add your assertions here
+            //Assert
+            Assert.IsNotNull(cycle);
         }
-
-        private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
-        {
-            Parameters retVal = p == null ? getDefaultParameters1() : p;
-            retVal.Set(key, value);
-
-            return retVal;
-        }
-
-        
 
     }
 }
