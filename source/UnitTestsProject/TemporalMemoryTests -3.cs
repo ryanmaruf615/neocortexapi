@@ -172,6 +172,34 @@ namespace UnitTestsProject
 
             Assert.IsFalse(cc.ActiveCells.SequenceEqual(burstingCells));
         }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestDestroySegmentsWithTooFewSynapsesToBeMatching()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters3(null, KEY.INITIAL_PERMANENCE, .2);
+            p = GetDefaultParameters3(p, KEY.MAX_NEW_SYNAPSE_COUNT, 4);
+            p = GetDefaultParameters3(p, KEY.PREDICTED_SEGMENT_DECREMENT, 0.02);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] prevActiveColumns = { 0 };
+            Cell[] prevActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) };
+            int[] activeColumns = { 2 };
+            Cell expectedActiveCell = cn.GetCell(6);
+
+            DistalDendrite matchingSegment = cn.CreateDistalSegment(cn.GetCell(6));
+            cn.CreateSynapse(matchingSegment, prevActiveCells[0], .015);
+            cn.CreateSynapse(matchingSegment, prevActiveCells[1], .015);
+            cn.CreateSynapse(matchingSegment, prevActiveCells[2], .015);
+            cn.CreateSynapse(matchingSegment, prevActiveCells[3], .015);
+            cn.CreateSynapse(matchingSegment, prevActiveCells[4], .015);
+            tm.Compute(prevActiveColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(expectedActiveCell));
+        }
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
