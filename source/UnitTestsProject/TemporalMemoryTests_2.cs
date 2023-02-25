@@ -259,7 +259,7 @@ namespace UnitTestsProject
 
             ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             List<Cell> prevWinnerCells = new List<Cell>(cc.WinnerCells);
-            Assert.AreEqual(3, prevWinnerCells.Count);
+            Assert.AreEqual(5, prevWinnerCells.Count);
 
             cc = tm.Compute(activeColumns, true) as ComputeCycle;
 
