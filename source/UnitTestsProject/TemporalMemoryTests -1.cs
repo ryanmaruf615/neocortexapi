@@ -307,7 +307,49 @@ namespace UnitTestsProject
             Assert.AreEqual(0.3, is1.Permanence, 0.001);
         }
 
-       
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNoNewSegmentIfNotEnoughWinnerCells1()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] zeroColumns = { };
+            int[] activeColumns = { 0 };
+
+            tm.Compute(zeroColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(), 0);
+        }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestSegmentCreationIfEnoughWinnerCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] zeroColumns = { };
+            int[] activeColumns = { 0, 1, 2, 3, 4 };
+
+            tm.Compute(zeroColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(), 0);
+        }
+        
+
+
+
+
+
+
 
 
 
