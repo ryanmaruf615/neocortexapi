@@ -177,6 +177,25 @@ namespace UnitTestsProject
         }
 
         [TestMethod]
+        public void TestActivateDendrites()
+        {
+            // Arrange
+            var conn = new Connections();
+            var cycle = new ComputeCycle();
+            bool learn = true;
+            int[] externalPredictiveInputsActive = new int[] { 1, 2, 3 };
+            int[] externalPredictiveInputsWinners = new int[] { 4, 5, 6 };
+            var myClass = (TemporalMemory)Activator.CreateInstance(typeof(TemporalMemory), nonPublic: true);
+
+            // Act
+            var method = typeof(TemporalMemory).GetMethod("ActivateDendrites", BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(myClass, new object[] { conn, cycle, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners });
+
+            //Assert
+            Assert.IsNotNull(cycle);
+        }
+
+        [TestMethod]
         [TestCategory("Prod")]
         public void TestPredictedActiveCellsAreCorrect()
         {
@@ -215,7 +234,7 @@ namespace UnitTestsProject
         {
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
-            Parameters p = GetDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.15);
+            Parameters p = GetDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.8);
             p.apply(cn);
             tm.Init(cn);
 
@@ -250,23 +269,89 @@ namespace UnitTestsProject
         }
 
         [TestMethod]
-        public void TestActivateDendrites()
+        [TestCategory("Prod")]
+        public void TestReinforcedSelectedMatchingSegmentInBurstingColumn()
         {
-            // Arrange
-            var conn = new Connections();
-            var cycle = new ComputeCycle();
-            bool learn = true;
-            int[] externalPredictiveInputsActive = new int[] { 1, 2, 3 };
-            int[] externalPredictiveInputsWinners = new int[] { 4, 5, 6 };
-            var myClass = (TemporalMemory)Activator.CreateInstance(typeof(TemporalMemory), nonPublic: true);
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.06);
+            p.apply(cn);
+            tm.Init(cn);
+            int[] previousActiveColumns = { 0 };
+            int[] activeColumns = { 1 };
+            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3) , cn.GetCell(4) };
+            Cell[] burstingCells = { cn.GetCell(4), cn.GetCell(6) };
 
-            // Act
-            var method = typeof(TemporalMemory).GetMethod("ActivateDendrites", BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(myClass, new object[] { conn, cycle, learn, externalPredictiveInputsActive, externalPredictiveInputsWinners });
+            DistalDendrite activeSegment = cn.CreateDistalSegment(burstingCells[0]);
+            Synapse as1 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.3);
+            Synapse as2 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.3);
+            Synapse as3 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.3);
+            Synapse as4 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.3);
+            Synapse as5 = cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.3);
+            Synapse is1 = cn.CreateSynapse(activeSegment, cn.GetCell(81), 0.3);
 
-            //Assert
-            Assert.IsNotNull(cycle);
+            DistalDendrite otherMatchingSegment = cn.CreateDistalSegment(burstingCells[1]);
+            cn.CreateSynapse(otherMatchingSegment, previousActiveCells[0], 0.3);
+            cn.CreateSynapse(otherMatchingSegment, previousActiveCells[1], 0.3);
+            cn.CreateSynapse(otherMatchingSegment, previousActiveCells[2], 0.3);
+            cn.CreateSynapse(otherMatchingSegment, cn.GetCell(81), 0.3);
+
+            tm.Compute(previousActiveColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0.3, as1.Permanence, 0.01);
+            Assert.AreEqual(0.3, as2.Permanence, 0.01);
+            Assert.AreEqual(0.3, as3.Permanence, 0.01);
+            Assert.AreEqual(0.3, as4.Permanence, 0.01);
+            Assert.AreEqual(0.3, as5.Permanence, 0.01);
+            Assert.AreEqual(0.3, is1.Permanence, 0.001);
         }
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNoNewSegmentIfNotEnoughWinnerCells1()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] zeroColumns = { };
+            int[] activeColumns = { 0 };
+
+            tm.Compute(zeroColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(), 0);
+        }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestSegmentCreationIfEnoughWinnerCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] zeroColumns = { };
+            int[] activeColumns = { 0, 1, 2, 3, 4 };
+
+            tm.Compute(zeroColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(), 0);
+        }
+        
+
+
+
+
+
+
+
+
 
     }
 }
