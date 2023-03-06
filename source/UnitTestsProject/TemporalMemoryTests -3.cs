@@ -218,6 +218,48 @@ namespace UnitTestsProject
 
             Assert.AreEqual(0, cn.NumSegments(), 0);
         }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNewSegmentAddSynapsesToAllWinnerCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters3(null, KEY.MAX_NEW_SYNAPSE_COUNT, 6);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0, 1, 2, 3, 4, 5 };
+            int[] activeColumns = { 6 };
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            List<Cell> prevWinnerCells = new List<Cell>(cc.WinnerCells);
+            Assert.AreEqual(6, prevWinnerCells.Count);
+
+            cc = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            List<Cell> winnerCells = new List<Cell>(cc.WinnerCells);
+            Assert.AreEqual(1, winnerCells.Count);
+
+            //DD
+            //List<DistalDendrite> segments = winnerCells[0].GetSegments(cn);
+            List<DistalDendrite> segments = winnerCells[0].DistalDendrites;
+
+            //List<DistalDendrite> segments = winnerCells[0].Segments;
+            Assert.AreEqual(1, segments.Count);
+            //List<Synapse> synapses = segments[0].GetAllSynapses(cn);
+            List<Synapse> synapses = segments[0].Synapses;
+
+            List<Cell> presynapticCells = new List<Cell>();
+            foreach (Synapse synapse in synapses)
+            {
+                Assert.AreEqual(0.25, synapse.Permanence, 0.05);
+                presynapticCells.Add(synapse.GetPresynapticCell());
+            }
+
+            presynapticCells.Sort();
+
+            Assert.IsTrue(prevWinnerCells.SequenceEqual(presynapticCells));
+        } 
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
