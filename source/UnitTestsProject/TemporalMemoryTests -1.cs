@@ -63,7 +63,7 @@ namespace UnitTestsProject
             return htmConfig;
         }
 
-        private Parameters GetDefaultParameters1(Parameters p, string key, Object value)
+        private Parameters getDefaultParameters1(Parameters p, string key, Object value)
         {
             Parameters retVal = p == null ? getDefaultParameters1() : p;
             retVal.Set(key, value);
@@ -234,7 +234,7 @@ namespace UnitTestsProject
         {
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
-            Parameters p = GetDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.8);
+            Parameters p = getDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.8);
             p.apply(cn);
             tm.Init(cn);
 
@@ -274,7 +274,7 @@ namespace UnitTestsProject
         {
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
-            Parameters p = GetDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.06);
+            Parameters p = getDefaultParameters1(null, KEY.PERMANENCE_DECREMENT, 0.06);
             p.apply(cn);
             tm.Init(cn);
             int[] previousActiveColumns = { 0 };
@@ -313,7 +313,7 @@ namespace UnitTestsProject
         {
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
-            Parameters p = GetDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            Parameters p = getDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
             p.apply(cn);
             tm.Init(cn);
 
@@ -331,7 +331,7 @@ namespace UnitTestsProject
         {
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
-            Parameters p = GetDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            Parameters p = getDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
             p.apply(cn);
             tm.Init(cn);
 
@@ -343,7 +343,85 @@ namespace UnitTestsProject
 
             Assert.AreEqual(0, cn.NumSegments(), 0);
         }
-        
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNewSegmentAddSynapsesToSubsetOfWinnerCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 2);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0, 1, 2 ,3 , 4 };
+            int[] activeColumns = { 8 };
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+
+            IList<Cell> prevWinnerCells = cc.WinnerCells;
+            Assert.AreEqual(5, prevWinnerCells.Count);
+
+            cc = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            List<Cell> winnerCells = new List<Cell>(cc.WinnerCells);
+            Assert.AreEqual(1, winnerCells.Count);
+
+            //DD
+            //List<DistalDendrite> segments = winnerCells[0].GetSegments(cn);
+            List<DistalDendrite> segments = winnerCells[0].DistalDendrites;
+            //List<DistalDendrite> segments = winnerCells[0].Segments;
+            Assert.AreEqual(1, segments.Count);
+
+            //DD List<Synapse> synapses = cn.GetSynapses(segments[0]);
+            List<Synapse> synapses = segments[0].Synapses;
+            Assert.AreEqual(2, synapses.Count);
+
+            foreach (Synapse synapse in synapses)
+            {
+                Assert.AreEqual(0.14, synapse.Permanence, 0.01);
+                Assert.IsTrue(prevWinnerCells.Contains(synapse.GetPresynapticCell()));
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Unit")]
+        public void TestNewSegmentAddSynapsesToSubsetOfWinnerCells1()
+        {
+            // Arrange
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = getDefaultParameters1(null, KEY.MAX_NEW_SYNAPSE_COUNT, 2);
+            p.apply(cn);
+            tm.Init(cn);
+
+            var previousActiveColumns = new[] { 0, 1, 2, 3, 4 };
+            var activeColumns = new[] { 6 };
+
+            // Act
+            var cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            var prevWinnerCells = cc.WinnerCells;
+
+            cc = tm.Compute(activeColumns, true) as ComputeCycle;
+            var winnerCells = new List<Cell>(cc.WinnerCells);
+
+            // Assert
+            Assert.AreEqual(5, prevWinnerCells.Count);
+            Assert.AreEqual(1, winnerCells.Count);
+
+            var segments = winnerCells[0].DistalDendrites;
+            Assert.AreEqual(1, segments.Count);
+
+            var synapses = segments[0].Synapses;
+            Assert.AreEqual(2, synapses.Count);
+
+            foreach (var synapse in synapses)
+            {
+                Assert.AreEqual(0.14, synapse.Permanence, 0.01);
+                Assert.IsTrue(prevWinnerCells.Contains(synapse.GetPresynapticCell()));
+            }
+        }
+
 
 
 
