@@ -326,6 +326,46 @@ namespace UnitTestsProject
         }
 
 
+        [TestMethod]
+        public void TestActiveSegmentGrowSynapsesAccordingToPotentialOverlap()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters2(null, KEY.CELLS_PER_COLUMN, 1);
+            p = GetDefaultParameters2(p, KEY.MIN_THRESHOLD, 1);
+            p = GetDefaultParameters2(p, KEY.ACTIVATION_THRESHOLD, 2);
+            p = GetDefaultParameters2(p, KEY.MAX_NEW_SYNAPSE_COUNT, 4);
+            p.apply(cn);
+            tm.Init(cn);
+
+            // Use 1 cell per column so that we have easy control over the winner cells.
+            int[] previousActiveColumns = { 0, 1, 2, 3, 4 };
+            List<Cell> prevWinnerCells = new List<Cell>(new Cell[] { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) });
+
+            int[] activeColumns = { 5 };
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cn.GetCell(5));
+            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.5);
+            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.5);
+            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.2);
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            Assert.IsTrue(prevWinnerCells.SequenceEqual(cc.WinnerCells));
+            cc = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            List<Cell> presynapticCells = new List<Cell>();
+            foreach (var syn in activeSegment.Synapses)
+            {
+                presynapticCells.Add(syn.GetPresynapticCell());
+            }
+
+            Assert.IsTrue(
+                presynapticCells.Count == 4 && (
+                (presynapticCells.Contains(cn.GetCell(0)) && presynapticCells.Contains(cn.GetCell(1)) && presynapticCells.Contains(cn.GetCell(2)) && presynapticCells.Contains(cn.GetCell(3))) ||
+                (presynapticCells.Contains(cn.GetCell(0)) && presynapticCells.Contains(cn.GetCell(1)) && presynapticCells.Contains(cn.GetCell(2)) && presynapticCells.Contains(cn.GetCell(4)))));
+        }
+
+
     }
 
 }
