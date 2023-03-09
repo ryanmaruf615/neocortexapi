@@ -218,6 +218,79 @@ namespace UnitTestsProject
 
             Assert.AreEqual(0, cn.NumSegments(), 0);
         }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNewSegmentAddSynapsesToAllWinnerCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters3(null, KEY.MAX_NEW_SYNAPSE_COUNT, 6);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0, 1, 2, 3, 4, 5 };
+            int[] activeColumns = { 6 };
+
+            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            List<Cell> prevWinnerCells = new List<Cell>(cc.WinnerCells);
+            Assert.AreEqual(6, prevWinnerCells.Count);
+
+            cc = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            List<Cell> winnerCells = new List<Cell>(cc.WinnerCells);
+            Assert.AreEqual(1, winnerCells.Count);
+
+            //DD
+            //List<DistalDendrite> segments = winnerCells[0].GetSegments(cn);
+            List<DistalDendrite> segments = winnerCells[0].DistalDendrites;
+
+            //List<DistalDendrite> segments = winnerCells[0].Segments;
+            Assert.AreEqual(1, segments.Count);
+            //List<Synapse> synapses = segments[0].GetAllSynapses(cn);
+            List<Synapse> synapses = segments[0].Synapses;
+
+            List<Cell> presynapticCells = new List<Cell>();
+            foreach (Synapse synapse in synapses)
+            {
+                Assert.AreEqual(0.25, synapse.Permanence, 0.05);
+                presynapticCells.Add(synapse.GetPresynapticCell());
+            }
+
+            presynapticCells.Sort();
+
+            Assert.IsTrue(prevWinnerCells.SequenceEqual(presynapticCells));
+        }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestDestroyWeakSynapseOnActiveReinforce()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters3(null, KEY.INITIAL_PERMANENCE, 0.3);
+            p = GetDefaultParameters3(p, KEY.MAX_NEW_SYNAPSE_COUNT, 6);
+            p = GetDefaultParameters3(p, KEY.PREDICTED_SEGMENT_DECREMENT, 0.04);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4), cn.GetCell(5) };
+            int[] activeColumns = { 5 };
+            Cell expectedActiveCell = cn.GetCell(6);
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(expectedActiveCell);
+            cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[1], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[2], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[3], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.5);
+            // Weak Synapse
+            cn.CreateSynapse(activeSegment, previousActiveCells[5], 0.009);
+
+            tm.Compute(previousActiveColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(5, activeSegment.Synapses.Count);
+        }
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
