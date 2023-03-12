@@ -291,6 +291,25 @@ namespace UnitTestsProject
 
             Assert.AreEqual(5, activeSegment.Synapses.Count);
         }
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestBurstNotpredictedColumns()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters3();
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] activeColumns = { 1, 2, 3 }; //Cureently Active column
+            IList<Cell> burstingCells = cn.GetCells(new int[] { 0, 1, 2, 3, 4, 5 }); //Number of Cell Indexs
+
+            ComputeCycle cc = tm.Compute(activeColumns, true) as ComputeCycle; //COmpute class object 
+
+            Assert.IsFalse(cc.ActiveCells.SequenceEqual(burstingCells));
+        }
+        // This is a unit test for the TemporalMemory class in C#
+
 
         private Parameters GetDefaultParameters3(Parameters p, string key, Object value)
         {
