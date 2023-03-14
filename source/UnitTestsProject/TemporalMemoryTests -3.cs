@@ -62,12 +62,15 @@ namespace UnitTestsProject
             return htmConfig;
         }
 
+        
+
         [TestMethod]
         [TestCategory("Prod")]
         [DataRow(0)]
         [DataRow(1)]
         public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
         {
+            // Arrange
             TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
             Connections cn = new Connections();
             Parameters p = getDefaultParameters3();
@@ -77,17 +80,9 @@ namespace UnitTestsProject
             int[] previousActiveColumns = { 0 };
             int[] activeColumns = { 1 };
 
-            // Cell4 belongs to column with index 1.
             Cell cell6 = cn.GetCell(6);
-
-            // ISet<Cell> expectedActiveCells = Stream.of(cell4).collect(Collectors.toSet());
-            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell6 });
-
-            // We add distal dentrite at column1.cell4
             DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
 
-            //
-            // We add here synapses between column0.cells[0-3] and segment.
             cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
@@ -95,12 +90,17 @@ namespace UnitTestsProject
             cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
             cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
 
-            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
-            Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedActiveCells));
+            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell6 });
 
+            // Act
+            ComputeCycle cc1 = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            // Assert
+            Assert.IsTrue(cc1.PredictiveCells.SequenceEqual(expectedActiveCells));
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
         }
+
 
         [TestMethod]
         [TestCategory("Prod")]
@@ -122,6 +122,9 @@ namespace UnitTestsProject
             TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
             Assert.AreEqual(0.7, s1.Permanence, 0.1);
         }
+
+
+
         [TestMethod]
         [TestCategory("Prod")]
         public void TestNoneActiveColumns()
