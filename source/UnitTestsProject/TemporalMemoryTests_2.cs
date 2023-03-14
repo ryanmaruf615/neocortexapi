@@ -419,12 +419,12 @@ namespace UnitTestsProject
             cn.CreateSynapse(activeSegment, previousActiveCells[2], 0.5);
             cn.CreateSynapse(activeSegment, previousActiveCells[3], 0.5);
             // Weak Synapse
-            cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.006);
+            Synapse weakSynapse = cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.006);
 
             tm.Compute(previousActiveColumns, true);
             tm.Compute(activeColumns, true);
 
-            Assert.AreEqual(4, activeSegment.Synapses.Count);
+            Assert.IsFalse(activeSegment.Synapses.Contains(weakSynapse));
         }
 
     }
