@@ -116,17 +116,22 @@ namespace UnitTestsProject
 
         [TestMethod]
         [TestCategory("Prod")]
-        public void testNumberOfColumns()
+        public void TestNumberOfColumns()
         {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = Parameters.getAllDefaultParameters();
+           
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = Parameters.getAllDefaultParameters();
             p.Set(KEY.COLUMN_DIMENSIONS, new int[] { 62, 62 });
             p.Set(KEY.CELLS_PER_COLUMN, 30);
             p.apply(cn);
             tm.Init(cn);
 
-            Assert.AreEqual(62 * 62, cn.HtmConfig.NumColumns);
+            
+            var actualNumColumns = cn.HtmConfig.NumColumns;
+            var expectedNumColumns = 62 * 62;
+
+            Assert.AreEqual(expectedNumColumns, actualNumColumns);
         }
 
         [TestMethod]
