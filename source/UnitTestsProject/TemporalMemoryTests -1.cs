@@ -121,31 +121,29 @@ namespace UnitTestsProject
         }
 
 
-
-
-
-
-
-
-
-
-
         [TestMethod]
-        public void TestBurstUnpredictedColumnsforFiveCells()
+        public void TestBurstUnpredictedColumnsforFiveCells2()
         {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = getDefaultParameters1();
+            // Arrange
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = getDefaultParameters1();
             p.apply(cn);
             tm.Init(cn);
 
-            int[] activeColumns = { 0 };
+            var activeColumns = new int[] { 0 };
             var burstingCells = cn.GetCells(new int[] { 0, 1, 2, 3, 4 });
 
-            ComputeCycle cc = tm.Compute(activeColumns, true) as ComputeCycle;
+            // Act
+            var result = tm.Compute(activeColumns, true) as ComputeCycle;
 
-            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
+            // Assert
+            CollectionAssert.AreEquivalent(burstingCells, result.ActiveCells);
         }
+
+
+
+
         [TestMethod]
         public void TestBurstUnpredictedColumnsforFiveCells1()
         {
