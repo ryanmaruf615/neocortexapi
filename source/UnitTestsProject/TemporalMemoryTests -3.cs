@@ -108,19 +108,19 @@ namespace UnitTestsProject
         {
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
-            Parameters p = Parameters.getAllDefaultParameters();
+            Parameters p = getDefaultParameters3();
             p.apply(cn);
             tm.Init(cn);
 
             DistalDendrite dd = cn.CreateDistalSegment(cn.GetCell(0));
-            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(6), 0.5); // central 
+            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(6), 0.8); // set initial permanence to 0.8
 
-            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
-            Assert.AreEqual(0.6, s1.Permanence, 0.1);
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), 0.1, 0.1); // adjust permanence by 0.1 increment and decrement
+            Assert.AreEqual(0.9, s1.Permanence, 0.1);
 
             // Now permanence should be at mean
-            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), cn.HtmConfig.PermanenceIncrement, cn.HtmConfig.PermanenceDecrement);
-            Assert.AreEqual(0.7, s1.Permanence, 0.1);
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), 0.1, 0.1); // adjust permanence by 0.1 increment and decrement
+            Assert.AreEqual(1.0, s1.Permanence, 0.1);
         }
 
 

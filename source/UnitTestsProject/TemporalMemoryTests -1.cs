@@ -72,61 +72,78 @@ namespace UnitTestsProject
             return retVal;
         }
 
+
+
         [TestMethod]
         [TestCategory("Prod")]
         [DataRow(0)]
         [DataRow(1)]
         public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
         {
+            // Create a TemporalMemory object using the specified implementation (0 = default, 1 = multi-threaded).
             TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
+
+            // Create a Connections object and apply default parameters.
             Connections cn = new Connections();
             Parameters p = getDefaultParameters1();
             p.apply(cn);
+
+            // Initialize the TemporalMemory object with the Connections object.
             tm.Init(cn);
 
+            // Define the input pattern as the previous active columns and the current active columns.
             int[] previousActiveColumns = { 0 };
             int[] activeColumns = { 1 };
 
-            // Cell4 belongs to column with index 1.
+            // Get the cell with index 5, which belongs to column with index 1.
             Cell cell5 = cn.GetCell(5);
 
-            // ISet<Cell> expectedActiveCells = Stream.of(cell4).collect(Collectors.toSet());
-            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell5 });
+            // Define the expected predictive cells as a HashSet containing the cell with index 5.
+            ISet<Cell> expectedPredictiveCells = new HashSet<Cell>(new Cell[] { cell5 });
 
-            // We add distal dentrite at column1.cell4
+            // Create a new distal dendrite segment at cell5.
             DistalDendrite activeSegment = cn.CreateDistalSegment(cell5);
 
-            //
-            // We add here synapses between column0.cells[0-3] and segment.
+            // Create synapses between the segment and cells 0-4 in the previous active columns.
             cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.15);
             cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.15);
             cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.15);
             cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.15);
             cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.15);
 
-
+            // Compute the next cycle with the previous active columns as input and verify that the predictive cells are as expected.
             ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
-            Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedActiveCells));
+            Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedPredictiveCells));
 
+            // Compute the next cycle with the current active columns as input and verify that the active cells are as expected.
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
-            Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
+            Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedPredictiveCells));
         }
+
+
         [TestMethod]
-        public void TestBurstUnpredictedColumnsforFiveCells()
+        public void TestBurstUnpredictedColumnsforFiveCells2()
         {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = getDefaultParameters1();
+            // Arrange
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = getDefaultParameters1();
             p.apply(cn);
             tm.Init(cn);
 
-            int[] activeColumns = { 0 };
+            var activeColumns = new int[] { 0 };
             var burstingCells = cn.GetCells(new int[] { 0, 1, 2, 3, 4 });
 
-            ComputeCycle cc = tm.Compute(activeColumns, true) as ComputeCycle;
+            // Act
+            var result = tm.Compute(activeColumns, true) as ComputeCycle;
 
-            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
+            // Assert
+            CollectionAssert.AreEquivalent(burstingCells, result.ActiveCells);
         }
+
+
+
+
         [TestMethod]
         public void TestBurstUnpredictedColumnsforFiveCells1()
         {
