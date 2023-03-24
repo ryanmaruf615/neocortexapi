@@ -195,19 +195,22 @@ namespace UnitTestsProject
         [TestCategory("Prod")]
         public void TestNoNewSegmentIfNotEnoughWinnerCells()
         {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = GetDefaultParameters2(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
+            // Arrange
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = GetDefaultParameters2(null, KEY.MAX_NEW_SYNAPSE_COUNT, 5);
             p.apply(cn);
             tm.Init(cn);
 
-            int[] zeroColumns = { };
-            int[] activeColumns = { 0 };
+            var zeroColumns = new int[0];
+            var activeColumns = new[] { 0 };
 
+            // Act
             tm.Compute(zeroColumns, true);
             tm.Compute(activeColumns, true);
 
-            Assert.AreEqual(0, cn.NumSegments(), 0);
+            // Assert
+            Assert.AreEqual(0, cn.NumSegments());
         }
 
 
