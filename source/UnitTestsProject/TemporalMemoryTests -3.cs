@@ -6,6 +6,7 @@ using NeoCortexApi.Entities;
 using NeoCortexApi.Types;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace UnitTestsProject
@@ -125,38 +126,38 @@ namespace UnitTestsProject
 
 
 
+        
+
+
         [TestMethod]
-        [TestCategory("Prod")]
+        [Category("Prod")]
         public void TestNoneActiveColumns()
         {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = getDefaultParameters3();
-            p.apply(cn);
+            // Arrange
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            getDefaultParameters3().apply(cn);
             tm.Init(cn);
+            var cell6 = cn.GetCell(6);
+            var activeSegment = cn.CreateDistalSegment(cell6);
+            var synapses = new[] { 0, 1, 2, 3, 4, 5 }
+                .Select(i => cn.GetCell(i))
+                .Select(cell => cn.CreateSynapse(activeSegment, cell, 0.20))
+                .ToList();
 
-            int[] previousActiveColumns = { 0 };
-            Cell cell6 = cn.GetCell(6);
+            // Act
+            var cc1 = tm.Compute(new[] { 0 }, true) as ComputeCycle;
+            var cc2 = tm.Compute(new int[0], true) as ComputeCycle;
 
-            DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
-            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
-
-            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
-            Assert.IsFalse(cc.ActiveCells.Count == 0);
-            Assert.IsFalse(cc.WinnerCells.Count == 0);
-            Assert.IsFalse(cc.PredictiveCells.Count == 0);
-
-            int[] zeroColumns = new int[0];
-            ComputeCycle cc2 = tm.Compute(zeroColumns, true) as ComputeCycle;
+            // Assert
+            Assert.IsFalse(cc1.ActiveCells.Count == 0);
+            Assert.IsFalse(cc1.WinnerCells.Count == 0);
+            Assert.IsFalse(cc1.PredictiveCells.Count == 0);
             Assert.IsTrue(cc2.ActiveCells.Count == 0);
             Assert.IsTrue(cc2.WinnerCells.Count == 0);
             Assert.IsTrue(cc2.PredictiveCells.Count == 0);
         }
+
         [TestMethod]
         public void TestArrayNotContainingCells()
         {
