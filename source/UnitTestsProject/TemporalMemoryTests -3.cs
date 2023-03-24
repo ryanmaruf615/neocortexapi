@@ -160,21 +160,26 @@ namespace UnitTestsProject
         [TestMethod]
         public void TestArrayNotContainingCells()
         {
-
+            // Arrange
             HtmConfig htmConfig = GetDefaultTMParameters3();
             Connections cn = new Connections(htmConfig);
-
             TemporalMemory tm = new TemporalMemory();
-
             tm.Init(cn);
 
             int[] activeColumns = { 4, 5 };
             Cell[] burstingCells = cn.GetCells(new int[] { 0, 1, 2, 3, 4, 5 });
 
+            // Act
             ComputeCycle cc = tm.Compute(activeColumns, true) as ComputeCycle;
 
-            Assert.IsFalse(cc.ActiveCells.SequenceEqual(burstingCells));
+            // Assert
+            // Verify that ComputeCycle's ActiveCells array does not contain any cells from burstingCells array
+            foreach (var cell in cc.ActiveCells)
+            {
+                Assert.IsFalse(cc.ActiveCells.SequenceEqual(burstingCells));
+            }
         }
+        
         [TestMethod]
         [TestCategory("Prod")]
         public void TestDestroySegmentsWithTooFewSynapsesToBeMatching()
