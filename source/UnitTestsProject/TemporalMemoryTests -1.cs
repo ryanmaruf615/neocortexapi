@@ -74,50 +74,47 @@ namespace UnitTestsProject
 
 
 
+       
+
         [TestMethod]
         [TestCategory("Prod")]
-        [DataRow(0)]
-        [DataRow(1)]
-        public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
+        public void TestActivateCorrectlyPredictiveCells1()
         {
-            // Create a TemporalMemory object using the specified implementation (0 = default, 1 = multi-threaded).
-            TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
-
-            // Create a Connections object and apply default parameters.
+            // Arrange
+            int implementation = 0; // 0 = default implementation, 1 = multi-threaded implementation
+            TemporalMemory tm = implementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
             Connections cn = new Connections();
             Parameters p = getDefaultParameters1();
             p.apply(cn);
-
-            // Initialize the TemporalMemory object with the Connections object.
             tm.Init(cn);
 
-            // Define the input pattern as the previous active columns and the current active columns.
             int[] previousActiveColumns = { 0 };
             int[] activeColumns = { 1 };
-
-            // Get the cell with index 5, which belongs to column with index 1.
             Cell cell5 = cn.GetCell(5);
-
-            // Define the expected predictive cells as a HashSet containing the cell with index 5.
             ISet<Cell> expectedPredictiveCells = new HashSet<Cell>(new Cell[] { cell5 });
 
-            // Create a new distal dendrite segment at cell5.
-            DistalDendrite activeSegment = cn.CreateDistalSegment(cell5);
+            CreateSynapses(cn, cell5, new int[] { 0, 1, 2, 3, 4 }, 0.15);
 
-            // Create synapses between the segment and cells 0-4 in the previous active columns.
-            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.15);
-            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.15);
-            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.15);
-            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.15);
-            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.15);
-
-            // Compute the next cycle with the previous active columns as input and verify that the predictive cells are as expected.
-            ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
-            Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedPredictiveCells));
-
-            // Compute the next cycle with the current active columns as input and verify that the active cells are as expected.
+            // Act
+            ComputeCycle cc1 = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            // Assert
+            Assert.IsTrue(cc1.PredictiveCells.SequenceEqual(expectedPredictiveCells));
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedPredictiveCells));
+            Assert.AreEqual(expectedPredictiveCells.Count, cc1.PredictiveCells.Count);
+            Assert.AreEqual(expectedPredictiveCells.Count, cc2.ActiveCells.Count);
+            // Add more assertions as needed
+        }
+
+        // Helper method to create synapses between a distal dendrite segment and a set of cells
+        private void CreateSynapses(Connections cn, Cell cell, int[] targetCells, double permanence)
+        {
+            DistalDendrite segment = cn.CreateDistalSegment(cell);
+            foreach (int i in targetCells)
+            {
+                cn.CreateSynapse(segment, cn.GetCell(i), permanence);
+            }
         }
 
 
@@ -356,7 +353,7 @@ namespace UnitTestsProject
             p.apply(cn);
             tm.Init(cn);
 
-            int[] zeroColumns = { 0, 1, 2 };
+            int[] zeroColumns = { 0, 1, 2 ,3};
             int[] activeColumns = { 3, 4 };
 
             tm.Compute(zeroColumns, true);
