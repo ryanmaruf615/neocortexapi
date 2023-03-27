@@ -12,9 +12,7 @@ how to deploy the project and experiment it out on a live system. Here is the ne
 - Project Solution File [NeoCortexApi]([[https://github.com/UniversityOfAppliedSciencesFrankfurt/se-cloud-2022-2023/blob/Team_UnitTestBD/Source/MyProject/UnitTestProject/NeoCortexApi.All.sln)](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/NeoCortexApi.sln)](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/NeoCortexApi.sln)
 
 - Project Documentation [Documentation](https://github.com/ryanmaruf615/neocortexapi/tree/dev/source/MySEProject/Documentation)
-
-- Project Readme [Readme](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/MySEProject/Documentation/Readme.md)
-
+- 
 - Project Commits  [Commits](https://github.com/ryanmaruf615/neocortexapi/commits/dev)
 
 - Final Project [UnitTestProject](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/NeoCortexApi/TemporalMemory.cs)
