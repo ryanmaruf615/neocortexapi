@@ -74,6 +74,59 @@ namespace UnitTestsProject
 
         [TestMethod]
         [TestCategory("Prod")]
+        public void TestDestroyWeakSynapseOnActiveReinforce()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters2(null, KEY.INITIAL_PERMANENCE, 0.3);
+            p = GetDefaultParameters2(p, KEY.MAX_NEW_SYNAPSE_COUNT, 4);
+            p = GetDefaultParameters2(p, KEY.PREDICTED_SEGMENT_DECREMENT, 0.02);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) };
+            int[] activeColumns = { 2 };
+            Cell expectedActiveCell = cn.GetCell(5);
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(expectedActiveCell);
+            cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[1], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[2], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[3], 0.5);
+            // Weak Synapse
+            Synapse weakSynapse = cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.006);
+
+            tm.Compute(previousActiveColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.IsFalse(activeSegment.Synapses.Contains(weakSynapse));
+        }
+
+
+        [TestMethod]
+        public void TestBurstUnpredictedColumnsforSixCells()
+        {
+
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = getDefaultParameters2();
+            p.apply(cn);
+            tm.Init(cn);
+            var activeColumns = new[] { 0 };
+            var burstingCells = cn.GetCells(new[] { 0, 1, 2, 3, 4, 5 });
+
+
+            var result = tm.Compute(activeColumns, true);
+
+
+            var cc = (ComputeCycle)result;
+            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
+        }
+
+
+        [TestMethod]
+        [TestCategory("Prod")]
         [DataRow(0)]
         [DataRow(1)]
         public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
@@ -169,58 +222,6 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.ActiveCells.Count == 0); 
             Assert.IsTrue(cc2.WinnerCells.Count == 0);  
             Assert.IsTrue(cc2.PredictiveCells.Count == 0); 
-        }
-
-        [TestMethod]
-        public void TestBurstUnpredictedColumnsforSixCells()
-        {
-           
-            var tm = new TemporalMemory();
-            var cn = new Connections();
-            var p = getDefaultParameters2();
-            p.apply(cn);
-            tm.Init(cn);
-            var activeColumns = new[] { 0 };
-            var burstingCells = cn.GetCells(new[] { 0, 1, 2, 3, 4, 5 });
-
-      
-            var result = tm.Compute(activeColumns, true);
-
-           
-            var cc = (ComputeCycle)result;
-            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
-        }
-
-
-        [TestMethod]
-        [TestCategory("Prod")]
-        public void TestDestroyWeakSynapseOnActiveReinforce()
-        {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = GetDefaultParameters2(null, KEY.INITIAL_PERMANENCE, 0.3);
-            p = GetDefaultParameters2(p, KEY.MAX_NEW_SYNAPSE_COUNT, 4);
-            p = GetDefaultParameters2(p, KEY.PREDICTED_SEGMENT_DECREMENT, 0.02);
-            p.apply(cn);
-            tm.Init(cn);
-
-            int[] previousActiveColumns = { 0 };
-            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) };
-            int[] activeColumns = { 2 };
-            Cell expectedActiveCell = cn.GetCell(5);
-
-            DistalDendrite activeSegment = cn.CreateDistalSegment(expectedActiveCell);
-            cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.5);
-            cn.CreateSynapse(activeSegment, previousActiveCells[1], 0.5);
-            cn.CreateSynapse(activeSegment, previousActiveCells[2], 0.5);
-            cn.CreateSynapse(activeSegment, previousActiveCells[3], 0.5);
-            // Weak Synapse
-            Synapse weakSynapse = cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.006);
-
-            tm.Compute(previousActiveColumns, true);
-            tm.Compute(activeColumns, true);
-
-            Assert.IsFalse(activeSegment.Synapses.Contains(weakSynapse));
         }
 
 
