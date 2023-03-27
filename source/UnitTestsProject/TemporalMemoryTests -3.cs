@@ -63,72 +63,6 @@ namespace UnitTestsProject
             return htmConfig;
         }
 
-        
-
-        [TestMethod]
-        [TestCategory("Prod")]
-        [DataRow(0)]
-        [DataRow(1)]
-        public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
-        {
-            // Arrange
-            TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
-            Connections cn = new Connections();
-            Parameters p = getDefaultParameters3();
-            p.apply(cn);
-            tm.Init(cn);
-
-            int[] previousActiveColumns = { 0 };
-            int[] activeColumns = { 1 };
-
-            Cell cell6 = cn.GetCell(6);
-            DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
-
-            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
-            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
-
-            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell6 });
-
-            // Act
-            ComputeCycle cc1 = tm.Compute(previousActiveColumns, true) as ComputeCycle;
-            ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
-
-            // Assert
-            Assert.IsTrue(cc1.PredictiveCells.SequenceEqual(expectedActiveCells));
-            Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
-        }
-
-
-        [TestMethod]
-        [TestCategory("Prod")]
-        public void TestAdaptSegmentToCentre()
-        {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = getDefaultParameters3();
-            p.apply(cn);
-            tm.Init(cn);
-
-            DistalDendrite dd = cn.CreateDistalSegment(cn.GetCell(0));
-            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(6), 0.8); // set initial permanence to 0.8
-
-            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), 0.1, 0.1); // adjust permanence by 0.1 increment and decrement
-            Assert.AreEqual(0.9, s1.Permanence, 0.1);
-
-            // Now permanence should be at mean
-            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), 0.1, 0.1); // adjust permanence by 0.1 increment and decrement
-            Assert.AreEqual(1.0, s1.Permanence, 0.1);
-        }
-
-
-
-        
-
-
         [TestMethod]
         [Category("Prod")]
         public void TestNoneActiveColumns()
@@ -158,6 +92,29 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.PredictiveCells.Count == 0);
         }
 
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestAdaptSegmentToCentre()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters3();
+            p.apply(cn);
+            tm.Init(cn);
+
+            DistalDendrite dd = cn.CreateDistalSegment(cn.GetCell(0));
+            Synapse s1 = cn.CreateSynapse(dd, cn.GetCell(6), 0.8); // set initial permanence to 0.8
+
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), 0.1, 0.1); // adjust permanence by 0.1 increment and decrement
+            Assert.AreEqual(0.9, s1.Permanence, 0.1);
+
+            // Now permanence should be at mean
+            TemporalMemory.AdaptSegment(cn, dd, cn.GetCells(new int[] { 6 }), 0.1, 0.1); // adjust permanence by 0.1 increment and decrement
+            Assert.AreEqual(1.0, s1.Permanence, 0.1);
+        }
+
+
         [TestMethod]
         public void TestArrayNotContainingCells()
         {
@@ -180,7 +137,8 @@ namespace UnitTestsProject
                 Assert.IsFalse(cc.ActiveCells.SequenceEqual(burstingCells));
             }
         }
-        
+
+
         [TestMethod]
         [TestCategory("Prod")]
         public void TestDestroySegmentsWithTooFewSynapsesToBeMatching()
@@ -209,24 +167,7 @@ namespace UnitTestsProject
 
             Assert.AreEqual(0, cn.NumSegments(expectedActiveCell));
         }
-        [TestMethod]
-        [TestCategory("Prod")]
-        public void TestNoNewSegmentIfNotEnoughWinnerCells()
-        {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = GetDefaultParameters3(null, KEY.MAX_NEW_SYNAPSE_COUNT, 6);
-            p.apply(cn);
-            tm.Init(cn);
 
-            int[] zeroColumns = { };
-            int[] activeColumns = { 0 };
-
-            tm.Compute(zeroColumns, true);
-            tm.Compute(activeColumns, true);
-
-            Assert.AreEqual(0, cn.NumSegments(), 0);
-        }
         [TestMethod]
         [TestCategory("Prod")]
         public void TestNewSegmentAddSynapsesToAllWinnerCells()
@@ -269,6 +210,76 @@ namespace UnitTestsProject
 
             Assert.IsTrue(prevWinnerCells.SequenceEqual(presynapticCells));
         }
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        [DataRow(0)]
+        [DataRow(1)]
+        public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
+        {
+            // Arrange
+            TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
+            Connections cn = new Connections();
+            Parameters p = getDefaultParameters3();
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] previousActiveColumns = { 0 };
+            int[] activeColumns = { 1 };
+
+            Cell cell6 = cn.GetCell(6);
+            DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
+
+            cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(1), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(2), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(3), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(4), 0.20);
+            cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
+
+            ISet<Cell> expectedActiveCells = new HashSet<Cell>(new Cell[] { cell6 });
+
+            // Act
+            ComputeCycle cc1 = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
+
+            // Assert
+            Assert.IsTrue(cc1.PredictiveCells.SequenceEqual(expectedActiveCells));
+            Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
+        }
+
+
+        
+
+
+
+        
+
+
+        
+
+        
+        
+        
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestNoNewSegmentIfNotEnoughWinnerCells()
+        {
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters3(null, KEY.MAX_NEW_SYNAPSE_COUNT, 6);
+            p.apply(cn);
+            tm.Init(cn);
+
+            int[] zeroColumns = { };
+            int[] activeColumns = { 0 };
+
+            tm.Compute(zeroColumns, true);
+            tm.Compute(activeColumns, true);
+
+            Assert.AreEqual(0, cn.NumSegments(), 0);
+        }
+        
         [TestMethod]
         [TestCategory("Prod")]
         public void TestDestroyWeakSynapseOnActiveReinforce()
