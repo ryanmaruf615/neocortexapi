@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="3.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="GemBox.Spreadsheet" Version="47.0.1268" />
     <PackageReference Include="ImageBinarizer" Version="1.5.6" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0-preview3.19128.7" />
