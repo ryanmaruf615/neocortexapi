@@ -211,6 +211,14 @@ namespace UnitTestsProject
             Assert.IsTrue(prevWinnerCells.SequenceEqual(presynapticCells));
         }
 
+
+
+
+
+
+
+
+
         [TestMethod]
         [TestCategory("Prod")]
         [DataRow(0)]
@@ -248,19 +256,6 @@ namespace UnitTestsProject
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
         }
 
-
-        
-
-
-
-        
-
-
-        
-
-        
-        
-        
         [TestMethod]
         [TestCategory("Prod")]
         public void TestNoNewSegmentIfNotEnoughWinnerCells()
