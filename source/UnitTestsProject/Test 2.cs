@@ -74,64 +74,15 @@ namespace UnitTestsProject
 
         [TestMethod]
         [TestCategory("Prod")]
-        public void TestDestroyWeakSynapseOnActiveReinforce()
-        {
-            TemporalMemory tm = new TemporalMemory();
-            Connections cn = new Connections();
-            Parameters p = GetDefaultParameters2(null, KEY.INITIAL_PERMANENCE, 0.3);
-            p = GetDefaultParameters2(p, KEY.MAX_NEW_SYNAPSE_COUNT, 4);
-            p = GetDefaultParameters2(p, KEY.PREDICTED_SEGMENT_DECREMENT, 0.02);
-            p.apply(cn);
-            tm.Init(cn);
-
-            int[] previousActiveColumns = { 0 };
-            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) };
-            int[] activeColumns = { 2 };
-            Cell expectedActiveCell = cn.GetCell(5);
-
-            DistalDendrite activeSegment = cn.CreateDistalSegment(expectedActiveCell);
-            cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.5);
-            cn.CreateSynapse(activeSegment, previousActiveCells[1], 0.5);
-            cn.CreateSynapse(activeSegment, previousActiveCells[2], 0.5);
-            cn.CreateSynapse(activeSegment, previousActiveCells[3], 0.5);
-            // Weak Synapse
-            Synapse weakSynapse = cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.006);
-
-            tm.Compute(previousActiveColumns, true);
-            tm.Compute(activeColumns, true);
-
-            Assert.IsFalse(activeSegment.Synapses.Contains(weakSynapse));
-        }
-
-
-        [TestMethod]
-        public void TestBurstUnpredictedColumnsforSixCells()
-        {
-
-            var tm = new TemporalMemory();
-            var cn = new Connections();
-            var p = getDefaultParameters2();
-            p.apply(cn);
-            tm.Init(cn);
-            var activeColumns = new[] { 0 };
-            var burstingCells = cn.GetCells(new[] { 0, 1, 2, 3, 4, 5 });
-
-
-            var result = tm.Compute(activeColumns, true);
-
-
-            var cc = (ComputeCycle)result;
-            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
-        }
-
-
-        [TestMethod]
-        [TestCategory("Prod")]
         [DataRow(0)]
         [DataRow(1)]
         public void TestActivateCorrectlyPredictiveCells(int tmImplementation)
         {
+            // The TemporalMemory object is initialized with either the default implementation or a multithreaded implementation based on the input parameter.
+            
             TemporalMemory tm = tmImplementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
+            // The Connections object is created and the default parameters are applied to it.
+            // The TemporalMemory is initialized with the Connections object.
             Connections cn = new Connections();
             Parameters p = getDefaultParameters2();
             p.apply(cn);
@@ -159,9 +110,12 @@ namespace UnitTestsProject
             cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
 
             ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
+            // The ActiveCells property of the ComputeCycle object returned by the second Compute method call is compared to the expectedActiveCells set.
             Assert.IsTrue(cc.PredictiveCells.SequenceEqual(expectedActiveCells));
 
+            
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
+            // The Assert.IsTrue method is used to check if the PredictiveCells and ActiveCells properties match the expectedActiveCells set.
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedActiveCells));
         }
 
@@ -171,7 +125,7 @@ namespace UnitTestsProject
         [TestCategory("Prod")]
         public void TestNumberOfColumns()
         {
-           
+            // The method creates a new TemporalMemory object, a Connections object and sets the column dimensions to 62x62 and cells per column to 30 using parameters
             var tm = new TemporalMemory();
             var cn = new Connections();
             var p = Parameters.getAllDefaultParameters();
@@ -179,28 +133,33 @@ namespace UnitTestsProject
             p.Set(KEY.CELLS_PER_COLUMN, 30);
             p.apply(cn);
             tm.Init(cn);
+            // The number of columns is verified by comparing the actual number of columns in the connections object with the expected number of columns
 
-            
             var actualNumColumns = cn.HtmConfig.NumColumns;
             var expectedNumColumns = 62 * 62;
 
+            // Assert statement is used to verify that the expected and actual number of columns are equal.
             Assert.AreEqual(expectedNumColumns, actualNumColumns);
         }
+
 
         [TestMethod]
         [TestCategory("Prod")]
         public void TestWithTwoActiveColumns()
         {
+            // The test creates a TemporalMemory object, a Connections object, and sets the default parameters.
             TemporalMemory tm = new TemporalMemory();
             Connections cn = new Connections();
             Parameters p = getDefaultParameters2();
             p.apply(cn);
             tm.Init(cn);
 
+            // It then initializes the TemporalMemory object with the Connections object and sets two columns, 4 and 5, as active in the previous time step.
             int[] previousActiveColumns = { 4, 5 }; 
             Cell cell6 = cn.GetCell(7); 
             Cell cell7 = cn.GetCell(8);
 
+            // The test creates a DistalDendrite object and adds synapses between the dendrite and the cells in the first six columns.
             DistalDendrite activeSegment = cn.CreateDistalSegment(cell6);
            
             cn.CreateSynapse(activeSegment, cn.GetCell(0), 0.20);
@@ -211,17 +170,75 @@ namespace UnitTestsProject
             cn.CreateSynapse(activeSegment, cn.GetCell(5), 0.20);
 
 
-
+            // The test then computes the next time step with the previously active columns and verifies that there are active and winner cells but no predictive cells.
             ComputeCycle cc = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             Assert.IsFalse(cc.ActiveCells.Count == 0);
             Assert.IsFalse(cc.WinnerCells.Count == 0);
             Assert.IsTrue(cc.PredictiveCells.Count == 0);
 
+            // It then computes the next time step with no active columns and verifies that there are no active, winner, or predictive cells.
             int[] zeroColumns = new int[0];
             ComputeCycle cc2 = tm.Compute(zeroColumns, true) as ComputeCycle; 
             Assert.IsTrue(cc2.ActiveCells.Count == 0); 
             Assert.IsTrue(cc2.WinnerCells.Count == 0);  
             Assert.IsTrue(cc2.PredictiveCells.Count == 0); 
+        }
+
+        [TestMethod]
+        public void TestBurstUnpredictedColumnsforSixCells()
+        {
+            var tm = new TemporalMemory();
+            var cn = new Connections();
+            var p = getDefaultParameters2();
+            p.apply(cn);
+            tm.Init(cn);
+            // Setting an array with a single active column (column 0)
+            var activeColumns = new[] { 0 };
+            // Retrieving an array of cells with indices 0-5 (six cells).
+            var burstingCells = cn.GetCells(new[] { 0, 1, 2, 3, 4, 5 });
+
+            // Calling the Compute method of TemporalMemory with activeColumns and true as arguments,
+            // which returns the result of a compute cycle.
+            var result = tm.Compute(activeColumns, true);
+
+            // Casting the result to ComputeCycle and verifying that the set of active cells in the ComputeCycle
+            // is equal to the set of bursting cells.
+            var cc = (ComputeCycle)result;
+            Assert.IsTrue(cc.ActiveCells.SequenceEqual(burstingCells));
+        }
+
+        [TestMethod]
+        [TestCategory("Prod")]
+        public void TestDestroyWeakSynapseOnActiveReinforce()
+        {
+            // It creates a temporal memory and connections object and initializes them with default parameters
+            TemporalMemory tm = new TemporalMemory();
+            Connections cn = new Connections();
+            Parameters p = GetDefaultParameters2(null, KEY.INITIAL_PERMANENCE, 0.3);
+            p = GetDefaultParameters2(p, KEY.MAX_NEW_SYNAPSE_COUNT, 4);
+            p = GetDefaultParameters2(p, KEY.PREDICTED_SEGMENT_DECREMENT, 0.02);
+            p.apply(cn);
+            tm.Init(cn);
+
+            // It sets the active and previous active columns and cells and creates an active segment with synapses to previous active cells
+            int[] previousActiveColumns = { 0 };
+            Cell[] previousActiveCells = { cn.GetCell(0), cn.GetCell(1), cn.GetCell(2), cn.GetCell(3), cn.GetCell(4) };
+            int[] activeColumns = { 2 };
+            Cell expectedActiveCell = cn.GetCell(5);
+
+            DistalDendrite activeSegment = cn.CreateDistalSegment(expectedActiveCell);
+            cn.CreateSynapse(activeSegment, previousActiveCells[0], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[1], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[2], 0.5);
+            cn.CreateSynapse(activeSegment, previousActiveCells[3], 0.5);
+            // Weak Synapse
+            // One of the synapses is a weak synapse with a low permanence value
+            Synapse weakSynapse = cn.CreateSynapse(activeSegment, previousActiveCells[4], 0.006);
+            // The test simulates two cycles of activity and reinforces the active synapse
+            tm.Compute(previousActiveColumns, true);
+            tm.Compute(activeColumns, true);
+            // The test checks that the weak synapse has been destroyed and is no longer present in the active segment.
+            Assert.IsFalse(activeSegment.Synapses.Contains(weakSynapse));
         }
 
 
