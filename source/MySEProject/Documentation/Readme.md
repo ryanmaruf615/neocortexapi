@@ -17,9 +17,9 @@ how to deploy the project and experiment it out on a live system. Here is the ne
 
 - Final Project [UnitTestProject](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/NeoCortexApi/TemporalMemory.cs)
 
-- Temporal Memory Test Class [TemporalMemory.cs](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/UnitTestsProject/TemporalMemoryTests%20-1.cs
-- https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/UnitTestsProject/TemporalMemoryTests_2.cs
-- https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/UnitTestsProject/TemporalMemoryTests%20-3.cs
+- Temporal Memory Test Class [TemporalMemory.cs](https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/UnitTestsProject/Test%201.cs
+- https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/UnitTestsProject/Test%202.cs
+- https://github.com/ryanmaruf615/neocortexapi/blob/dev/source/UnitTestsProject/Test%203.cs
 - )
 
 **Project Description**
