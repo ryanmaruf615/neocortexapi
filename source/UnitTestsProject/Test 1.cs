@@ -238,30 +238,36 @@ namespace UnitTestsProject
         public void TestActivateCorrectlyPredictiveCells1()
         {
             // Arrange
-            int implementation = 0; // 0 = default implementation, 1 = multi-threaded implementation
+            //The method creates a new instance of the TemporalMemory class and a Connections object, and sets some default parameters for the memory using the getDefaultParameters1() method.
+            int implementation = 0;
             TemporalMemory tm = implementation == 0 ? new TemporalMemory() : new TemporalMemoryMT();
             Connections cn = new Connections();
             Parameters p = getDefaultParameters1();
             p.apply(cn);
             tm.Init(cn);
 
+            //The method creates an input pattern by setting the previousActiveColumns and activeColumns arrays, which represent the indices of the active columns in the previous and current time steps, respectively.
             int[] previousActiveColumns = { 0 };
             int[] activeColumns = { 1 };
+
+            //The method obtains a specific cell from the Connections object using the GetCell() method and sets up some synapses to it using the CreateSynapses() helper method.
             Cell cell5 = cn.GetCell(5);
             ISet<Cell> expectedPredictiveCells = new HashSet<Cell>(new Cell[] { cell5 });
 
             CreateSynapses(cn, cell5, new int[] { 0, 1, 2, 3, 4 }, 0.15);
 
             // Act
+            //The method then calls the Compute() method of the TemporalMemory instance twice with the input pattern to activate the memory and obtain the resulting active and predictive cells.
             ComputeCycle cc1 = tm.Compute(previousActiveColumns, true) as ComputeCycle;
             ComputeCycle cc2 = tm.Compute(activeColumns, true) as ComputeCycle;
 
             // Assert
+            //Finally, the method performs some assertions to check that the expected predictive and active cells are indeed activated by the input pattern.
             Assert.IsTrue(cc1.PredictiveCells.SequenceEqual(expectedPredictiveCells));
             Assert.IsTrue(cc2.ActiveCells.SequenceEqual(expectedPredictiveCells));
             Assert.AreEqual(expectedPredictiveCells.Count, cc1.PredictiveCells.Count);
             Assert.AreEqual(expectedPredictiveCells.Count, cc2.ActiveCells.Count);
-            // Add more assertions as needed
+            
         }
 
         // Helper method to create synapses between a distal dendrite segment and a set of cells
